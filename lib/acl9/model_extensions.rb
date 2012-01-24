@@ -33,9 +33,9 @@ module Acl9
       # @see Acl9::ModelExtensions::Subject
       #
       def acts_as_authorization_subject(options = {})
-      	assoc = options[:association_name] || Acl9::config[:default_association_name]
-        role = options[:role_class_name] || Acl9::config[:default_role_class_name]
-        join_table = options[:join_table_name] || Acl9::config[:default_join_table_name] ||
+      	assoc       = options[:association_name] || Acl9::config[:default_association_name]
+        role        = options[:role_class_name] || Acl9::config[:default_role_class_name]
+        join_table  = options[:join_table_name] || Acl9::config[:default_join_table_name] ||
             self.table_name_prefix + [undecorated_table_name(self.to_s), undecorated_table_name(role)].sort.join("_") + self.table_name_suffix
 
         has_and_belongs_to_many assoc, :class_name => role, :join_table => join_table
@@ -72,9 +72,9 @@ module Acl9
       # @see Acl9::ModelExtensions::Object
       #
       def acts_as_authorization_object(options = {})
-        subject = options[:subject_class_name] || Acl9::config[:default_subject_class_name]
-        subj_table = subject.constantize.table_name
-        subj_col = subject.underscore
+        subject     = options[:subject_class_name] || Acl9::config[:default_subject_class_name]
+        subj_table  = subject.constantize.table_name
+        subj_col    = subject.underscore
 
         role       = options[:role_class_name] || Acl9::config[:default_role_class_name]
         role_table = role.constantize.table_name
@@ -126,8 +126,9 @@ module Acl9
       # @see Acl9::ModelExtensions::Object#accepts_role?
       # @see Acl9::ModelExtensions::Object#accepts_no_role!
       def acts_as_authorization_role(options = {})
-        subject = options[:subject_class_name] || Acl9::config[:default_subject_class_name]
-        join_table = options[:join_table_name] || Acl9::config[:default_join_table_name] ||
+        subject     = options[:subject_class_name] || Acl9::config[:default_subject_class_name]
+        role        = options[:role_class_name] || Acl9::config[:default_role_class_name]
+        join_table  = options[:join_table_name] || Acl9::config[:default_join_table_name] ||
             self.table_name_prefix + [undecorated_table_name(self.to_s), undecorated_table_name(role)].sort.join("_") + self.table_name_suffix
 
         has_and_belongs_to_many subject.demodulize.tableize.to_sym,
