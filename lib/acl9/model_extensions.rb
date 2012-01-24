@@ -77,7 +77,7 @@ module Acl9
         subj_table  = subject.constantize.table_name
 
         has_many :accepted_roles, :as => :authorizable, :class_name => role, :dependent => :destroy
-        has_many subj_table.to_sym, :through => :accepted_roles, :uniq => true, :source => table
+        has_many subj_table.to_sym, :through => :accepted_roles, :uniq => true, :source => subj_table
 
         include Acl9::ModelExtensions::ForObject
       end
