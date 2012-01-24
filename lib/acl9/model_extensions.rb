@@ -74,29 +74,10 @@ module Acl9
       def acts_as_authorization_object(options = {})
         subject     = options[:subject_class_name] || Acl9::config[:default_subject_class_name]
         role        = options[:role_class_name] || Acl9::config[:default_role_class_name]
-        join_table  = options[:join_table_name] || Acl9::config[:default_join_table_name] || generated_join_table_name(subject)
-
-        role_table  = role.constantize.table_name
         subj_table  = subject.constantize.table_name
-        subj_col    = subject.underscore
-
-        sql_tables = <<-EOS
-          FROM #{subj_table}
-          INNER JOIN #{join_table} ON #{subj_col}_id = #{subj_table}.id
-          INNER JOIN #{role_table} ON #{role_table}.id = #{role.underscore}_id
-        EOS
-
-        sql_where = <<-'EOS'
-          WHERE authorizable_type = '#{self.class.base_class.to_s}'
-          AND authorizable_id = #{column_for_attribute(self.class.primary_key).text? ? "'#{id}'": id}
-        EOS
 
         has_many :accepted_roles, :as => :authorizable, :class_name => role, :dependent => :destroy
-
-        has_many :"#{subj_table}",
-          :finder_sql  => ("SELECT DISTINCT #{subj_table}.*" + sql_tables + sql_where),
-          :counter_sql => ("SELECT COUNT(DISTINCT #{subj_table}.id)" + sql_tables + sql_where),
-          :readonly => true
+        has_many subj_table, :through => :accepted_roles, :uniq => true, :source => role
 
         include Acl9::ModelExtensions::ForObject
       end
