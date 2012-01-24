@@ -36,11 +36,11 @@ module Acl9
       # @see Acl9::ModelExtensions::Object#accepts_role?
       def has_role?(role_name, object = nil)
         !! if object.nil? && !::Acl9.config[:protect_global_roles]
-          self.role_objects.find_by_name(role_name.to_s) ||
-          self.role_objects.member?(get_role(role_name, nil))
+          self.role_objects_assoc.find_by_name(role_name.to_s) ||
+          self.role_objects_assoc.member?(get_role(role_name, nil))
         else
           role = get_role(role_name, object)
-          role && self.role_objects.exists?(role.id)
+          role && self.role_objects_assoc.exists?(role.id)
         end
       end
 
@@ -63,7 +63,7 @@ module Acl9
           role = self._auth_role_class.create(role_attrs)
         end
 
-        self.role_objects << role if role && !self.role_objects.exists?(role.id)
+        self.role_objects_assoc << role if role && !self.role_objects_assoc.exists?(role.id)
       end
 
       ##
@@ -83,7 +83,7 @@ module Acl9
       # @return [Boolean] Returns true if +self+ has any roles on +object+.
       # @see Acl9::ModelExtensions::Object#accepts_roles_by?
       def has_roles_for?(object)
-        !!self.role_objects.detect(&role_selecting_lambda(object))
+        !!self.role_objects_assoc.detect(&role_selecting_lambda(object))
       end
 
       alias :has_role_for? :has_roles_for?
@@ -100,7 +100,7 @@ module Acl9
       #
       #   user.roles_for(product).map(&:name).sort  #=> role names in alphabetical order
       def roles_for(object)
-        self.role_objects.select(&role_selecting_lambda(object))
+        self.role_objects_assoc.select(&role_selecting_lambda(object))
       end
 
       ##
@@ -119,7 +119,7 @@ module Acl9
         #   self.roles.each { |role| delete_role(role) }
         #
         # doesn't work. seems like a bug in ActiveRecord
-        self.role_objects.map(&:id).each do |role_id|
+        self.role_objects_assoc.map(&:id).each do |role_id|
           delete_role self._auth_role_class.find(role_id)
         end
       end
@@ -159,7 +159,7 @@ module Acl9
 
       def delete_role(role)
         if role
-          self.role_objects.delete role
+          self.role_objects_assoc.delete role
           if role.send(self._auth_subject_class_name.demodulize.tableize).empty?
             role.destroy unless role.respond_to?(:system?) && role.system?
           end
@@ -176,7 +176,7 @@ module Acl9
       	self.class._auth_role_assoc_name
       end
 
-      def role_objects
+      def role_objects_assoc
       	send(self._auth_role_assoc)
       end
 
